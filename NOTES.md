@@ -1,16 +1,23 @@
 # Setup Notes
+
 ## CLAUDE.md choices
-I included the essential commands (dev, test, lint) and the core architecture (server.js entry point, routes/ structure, db/store.js for data). I left out obvious things like file names that Claude can see, and any sensitive or one-off notes. Keeping it short means Claude actually reads it.
+**Kept:** a one-line description, the three commands I actually run (dev, test, lint, plus a note that CI needs lint and tests to pass), and a short architecture section (where the app is built, how routers are mounted, that the store is in-memory and resets on restart).
 
-## Permission rules (in `.claude/settings.json`)
-- `allow: npm test:*` — lets Claude run tests safely to verify changes
-- `allow: npm run lint:*` — lets Claude check code style without a prompt
-- `deny: Read(./.env)`, `Read(./.env.*)` — protects secrets (including `.env.local` etc.) from being read
-- `deny: Bash(cat .env*)` — blocks the obvious shell route around the Read rule (pattern-based, so not airtight)
-- `deny: git push --force:*`, `git push -f:*` — prevents accidental force pushes that could lose history
-- `ask: git push:*` — forces confirmation before any push (deny rules take precedence, so force pushes stay blocked)
+The conventions are rules Claude could plausibly get wrong without being told, each written as "do X, not Y" so it never has to ask: CommonJS instead of ESM, `node:test` + supertest instead of Jest, data access only through `db/store.js`, JSON `{ error }` responses with proper status codes, and new config going into `.env.example`, never `.env`.
 
-Without the deny rules, Claude could accidentally read .env (exposing API keys) or force-push and destroy commit history.
+**Left out:** a file-by-file listing and route details (Claude can read the code), setup steps already in the README, one-off task notes, and anything from `.env`. Every line in CLAUDE.md is loaded into every session, so I kept only what changes Claude's behaviour.
 
-## Summary
-I set up all three permission levels: allow, ask, and deny. NOTES.md documents why each permission rule exists. Because of the `ask` rule, Claude has to get my confirmation before it pushes any work.
+## Permission rules (`.claude/settings.json`)
+- **allow** `npm test`, `npm run lint`: safe, read-only checks Claude should run freely after a change.
+- **ask** `git push`: pushing is outward-facing, so I want to confirm each one.
+- **deny** `Read(./.env)`, `Read(./.env.*)`, `Bash(cat .env*)`: keeps secrets out of the conversation. The Bash rule is pattern-based, so it blocks the obvious workaround but isn't airtight.
+- **deny** `git push --force` / `git push -f`: deny beats ask, so force pushes are blocked outright.
+
+Without the deny rules, Claude could read `.env` while "looking around" and put real API keys or DB passwords into the transcript. It could also force-push over the remote branch and wipe out shared history.
+
+I also fixed `.gitignore`: its entries were indented, and git treats leading spaces as part of the pattern, so `.env` and `.claude/settings.local.json` were **not** actually ignored. I also added `.DS_Store`.
+
+## Verification
+- `/memory` lists `./CLAUDE.md` as the loaded project memory.
+- `/permissions` shows the allow, ask, and deny rules above under project settings.
+- In a fresh session, "How do I run the tests here?" was answered with `npm test` / `node:test` + supertest, taken from CLAUDE.md.
