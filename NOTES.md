@@ -10,7 +10,7 @@ The conventions are rules Claude could plausibly get wrong without being told, e
 ## Permission rules (`.claude/settings.json`)
 - **allow** `npm test`, `npm run lint`: safe, read-only checks Claude should run freely after a change.
 - **ask** `git push`: pushing is outward-facing, so I want to confirm each one.
-- **deny** `Read(./.env)`, `Read(./.env.*)`, `Bash(cat .env*)`: keeps secrets out of the conversation. The Bash rule is pattern-based, so it blocks the obvious workaround but isn't airtight.
+- **deny** reading `.env` and its real variants (`.env.local`, `.env.*.local`, `.env.development`, `.env.production`, `.env.test`) via `Read` and `cat`: keeps secrets out of the conversation. The files are listed one by one rather than as `.env.*` so that `.env.example` stays readable, because CLAUDE.md tells Claude to add new config keys there and deny always beats allow. The Bash rules only catch `cat`, so they block the obvious workaround but aren't airtight.
 - **deny** `git push --force` / `git push -f`: deny beats ask, so force pushes are blocked outright.
 
 Without the deny rules, Claude could read `.env` while "looking around" and put real API keys or DB passwords into the transcript. It could also force-push over the remote branch and wipe out shared history.
