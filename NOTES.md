@@ -11,3 +11,6 @@ I included the essential commands (dev, test, lint) and the core architecture (s
 - `ask: git push:*` — forces confirmation before any push (deny rules take precedence, so force pushes stay blocked)
 
 Without the deny rules, Claude could accidentally read .env (exposing API keys) or force-push and destroy commit history.
+
+## Summary
+I set up all three permission levels: allow, ask, and deny. NOTES.md documents why each permission rule exists. Because of the `ask` rule, Claude has to get my confirmation before it pushes any work.
